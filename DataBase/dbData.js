@@ -35,12 +35,16 @@ const main = async () => {
     PhoneNo: "1111111111",
   });
   console.log("Data inserted", dataTOBeDeleted);
-  const DataDelete = await collection.deleteMany({ FirstName: "Ganesh" });
+  const DataDelete = await collection.deleteMany({ FirstName: "Poko" });
   console.log("Data deleted", DataDelete);
 
   //read Document
   const findResult = await collection.find({ LastName: "Yadav" }).toArray();
   console.log("Found Document", findResult);
+
+  //Count Doc
+  const Count = await collection.countDocuments({});
+  console.log("Total Document ", Count);
 
   return "Done.";
 };
