@@ -1,7 +1,9 @@
 const { MongoClient } = require("mongodb");
-const { url } = require("../Key");
+const { KEY, USERNAME } = require("../DataBase/Key");
 
-const client = new MongoClient(url);
+const client = new MongoClient(
+  `mongodb+srv://${USERNAME}:${KEY}@learning.tfgam.mongodb.net/`
+);
 const dbName = "HelloWorld";
 const main = async () => {
   await client.connect();
