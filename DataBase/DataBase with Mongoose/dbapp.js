@@ -9,7 +9,7 @@ const port = 4000;
 
 app.use(express.json()); //now we will get req body into readable format used app.use to handle all http method and didnt give any  path just to handle all the path
 app.use("/admin", auth); //added middleware so that only authorised can get access
-
+//get user data
 app.get("/user", async (req, res) => {
   const userEmail = req.body.emailId;
   try {
@@ -23,23 +23,43 @@ app.get("/user", async (req, res) => {
     res.status(501).send("somthing went wrong!!");
   }
 });
-app.patch("/admin/updateuser", async (req, res) => {
-  const userid = req.body.userid;
+//to update user data
+app.patch("/admin/updateuser/:userid", async (req, res) => {
+  const userid = req.params?.userid;
   const Updatedata = req.body;
   if (!mongoose.Types.ObjectId.isValid(userid)) {
     return res.status(400).send("ID is not valid");
   }
   try {
-    const data = await user.findByIdAndUpdate(userid, Updatedata);
+    const allowedUpdate = [
+      "age",
+      "gender",
+      "password",
+      "about",
+      "photo",
+      "skills",
+    ];
+    const isAllowedUpdate = Object.keys(Updatedata).every((k) =>
+      allowedUpdate.includes(k)
+    );
+    if (!isAllowedUpdate) {
+      throw new Error("update not allowed");
+    }
+    const data = await user.findByIdAndUpdate(userid, Updatedata, {
+      runValidators: true,
+    });
+
     res.send("Data updated sucessfully");
   } catch (err) {
-    res.status(501).send("Somthing went wrong");
+    res.status(501).send("Somthing went wrong => " + err.message);
   }
 });
+//to get all data only for admin
 app.get("/admin/allData", async (req, res) => {
   const userData = await user.find({});
   res.send(userData);
 });
+//to delete by emailId
 app.delete("/admin/deleteuser", async (req, res) => {
   const userEmail = req.body.emailId;
 
@@ -58,6 +78,7 @@ app.delete("/admin/deleteuser", async (req, res) => {
     res.status(500).send("error occured");
   }
 });
+//to get user data by email id
 app.get("/admin/userdata", async (req, res) => {
   const userEmail = req.body.emailId;
   if (!userEmail) {
@@ -75,6 +96,7 @@ app.get("/admin/userdata", async (req, res) => {
     }
   }
 });
+//to add data in database
 app.post("/user", async (req, res) => {
   // console.log(req.body); //getting undefined we have to add middleware to convert json into readeable format for this we will use {express.json()} middleware
 
