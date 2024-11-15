@@ -6,17 +6,23 @@ const { default: mongoose } = require("mongoose");
 const { signupValidator } = require("./utils/validation");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
-
+const jwt = require("jsonwebtoken");
+const cookieparser = require("cookie-parser");
 const app = express();
 const port = 4000;
 
 app.use(express.json()); //now we will get req body into readable format used app.use to handle all http method and didnt give any  path just to handle all the path
 app.use("/admin", auth); //added middleware so that only authorised can get access
+app.use(cookieparser());
 //get user data
 app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailId;
   try {
-    const userData = await user.find({ emailId: userEmail });
+    const { token } = req.cookies;
+    const decordMessage = jwt.verify(token, "Happy@143");
+    const userid = decordMessage._id;
+    console.log(userid);
+
+    const userData = await user.findById(userid);
     if (userData.length === 0) {
       res.status(404).send("User not found");
     } else {
@@ -141,6 +147,9 @@ app.post("/login", async (req, res) => {
       throw new Error("invalid credential");
     }
     const loginuser = await user.findOne({ emailId: emailId });
+    const { _id } = loginuser;
+    console.log(_id);
+
     if (!loginuser) {
       throw new Error("invalid credential");
     }
@@ -148,6 +157,8 @@ app.post("/login", async (req, res) => {
     if (!isValidPassword) {
       throw new Error("invalid credential");
     } else {
+      const token = jwt.sign({ _id }, "Happy@143");
+      res.cookie("token", token);
       res.send("Login sucessfull");
     }
   } catch (err) {
