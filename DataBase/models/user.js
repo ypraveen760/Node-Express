@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,6 +23,11 @@ const userSchema = new mongoose.Schema(
       maxLength: 50,
       trim: true,
       unique: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Please enter valid email");
+        }
+      },
     },
     age: {
       type: Number,
@@ -42,9 +48,14 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       minLength: 8,
-      maxLength: 50,
+      maxLength: 500,
       required: true,
       trim: true,
+      validate(value) {
+        if (!validator.isStrongPassword(value)) {
+          throw new Error("Please enter strong password");
+        }
+      },
     },
     about: {
       type: String,
@@ -55,10 +66,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://e7.pngegg.com/pngimages/348/800/png-clipart-man-wearing-blue-shirt-illustration-computer-icons-avatar-user-login-avatar-blue-child.png",
+      validate(value) {
+        if (!validator.isURL(value)) {
+          throw new Error("Please enter valid photo url");
+        }
+      },
     },
     skills: {
       type: [String],
-      max: 10,
+      validate(value) {
+        if (value.length > 10) {
+          throw new Error("Skills should be not more than 10");
+        }
+      },
     },
   },
   {

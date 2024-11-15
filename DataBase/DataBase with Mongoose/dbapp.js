@@ -3,6 +3,9 @@ const dbConnect = require("../config/database");
 const user = require("../models/user");
 const { auth } = require("../../Middlewares&Route Handlers/authMiddleware");
 const { default: mongoose } = require("mongoose");
+const { signupValidator } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const validator = require("validator");
 
 const app = express();
 const port = 4000;
@@ -106,6 +109,50 @@ app.post("/user", async (req, res) => {
     res.send("Data saved sucessfully");
   } catch (err) {
     res.status(501).send("Somthing went Wrong:" + err.message);
+  }
+});
+//signup api
+app.post("/signup", async (req, res) => {
+  try {
+    //data validation
+    signupValidator(req);
+
+    //now destructuring the data
+    const { firstName, lastName, emailId, password } = req.body;
+    const hashPassword = await bcrypt.hash(password, 10);
+    const signupUser = new user({
+      firstName,
+      lastName,
+      emailId,
+      password: hashPassword,
+    });
+    await signupUser.save();
+    res.send("Sucessfully logined");
+  } catch (err) {
+    const statusCode = err.message.startsWith("Please") ? 400 : 500;
+    res.status(statusCode).send("Error Occured : " + err.message);
+  }
+});
+//login api
+app.post("/login", async (req, res) => {
+  try {
+    const { emailId, password } = req.body;
+    if (!validator.isEmail(emailId)) {
+      throw new Error("invalid credential");
+    }
+    const loginuser = await user.findOne({ emailId: emailId });
+    if (!loginuser) {
+      throw new Error("invalid credential");
+    }
+    const isValidPassword = await bcrypt.compare(password, loginuser.password);
+    if (!isValidPassword) {
+      throw new Error("invalid credential");
+    } else {
+      res.send("Login sucessfull");
+    }
+  } catch (err) {
+    const statusCode = err.message.startsWith("invalid") ? 401 : 501;
+    res.status(statusCode).send("Error : " + err.message);
   }
 });
 
