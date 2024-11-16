@@ -1,7 +1,10 @@
 const express = require("express");
 const dbConnect = require("../config/database");
-const user = require("../models/user");
-const { auth } = require("../../Middlewares&Route Handlers/authMiddleware");
+const User = require("../models/user");
+const {
+  auth,
+  userAuth,
+} = require("../../Middlewares&Route Handlers/authMiddleware");
 const { default: mongoose } = require("mongoose");
 const { signupValidator } = require("./utils/validation");
 const bcrypt = require("bcrypt");
@@ -15,21 +18,12 @@ app.use(express.json()); //now we will get req body into readable format used ap
 app.use("/admin", auth); //added middleware so that only authorised can get access
 app.use(cookieparser());
 //get user data
-app.get("/user", async (req, res) => {
+app.get("/user", userAuth, async (req, res) => {
   try {
-    const { token } = req.cookies;
-    const decordMessage = jwt.verify(token, "Happy@143");
-    const userid = decordMessage._id;
-    console.log(userid);
-
-    const userData = await user.findById(userid);
-    if (userData.length === 0) {
-      res.status(404).send("User not found");
-    } else {
-      res.send(userData);
-    }
+    const userData = req.user;
+    res.send(userData);
   } catch (err) {
-    res.status(501).send("somthing went wrong!!");
+    res.status(500).send("somthing went wrong!!");
   }
 });
 //to update user data
@@ -54,7 +48,7 @@ app.patch("/admin/updateuser/:userid", async (req, res) => {
     if (!isAllowedUpdate) {
       throw new Error("update not allowed");
     }
-    const data = await user.findByIdAndUpdate(userid, Updatedata, {
+    const data = await User.findByIdAndUpdate(userid, Updatedata, {
       runValidators: true,
     });
 
@@ -65,7 +59,7 @@ app.patch("/admin/updateuser/:userid", async (req, res) => {
 });
 //to get all data only for admin
 app.get("/admin/allData", async (req, res) => {
-  const userData = await user.find({});
+  const userData = await User.find({});
   res.send(userData);
 });
 //to delete by emailId
@@ -73,14 +67,14 @@ app.delete("/admin/deleteuser", async (req, res) => {
   const userEmail = req.body.emailId;
 
   try {
-    const userData = await user.findOne({ emailId: userEmail });
+    const userData = await User.findOne({ emailId: userEmail });
 
     if (!userData) {
       res.status(404).send("no user found");
     } else {
       const userid = userData.id;
 
-      await user.deleteOne({ _id: userid });
+      await User.deleteOne({ _id: userid });
       res.send("Data Deleted ");
     }
   } catch (err) {
@@ -94,7 +88,7 @@ app.get("/admin/userdata", async (req, res) => {
     res.status(501).send("Give valid emailID");
   } else {
     try {
-      const userData = await user.findOne({ emailId: userEmail });
+      const userData = await User.findOne({ emailId: userEmail });
       if (userData.length === 0) {
         res.status(404).send("user not found");
       } else {
@@ -109,7 +103,7 @@ app.get("/admin/userdata", async (req, res) => {
 app.post("/user", async (req, res) => {
   // console.log(req.body); //getting undefined we have to add middleware to convert json into readeable format for this we will use {express.json()} middleware
 
-  const newUser = new user(req.body); //now used req.body so it can save it into database
+  const newUser = new User(req.body); //now used req.body so it can save it into database
   try {
     await newUser.save();
     res.send("Data saved sucessfully");
@@ -126,7 +120,7 @@ app.post("/signup", async (req, res) => {
     //now destructuring the data
     const { firstName, lastName, emailId, password } = req.body;
     const hashPassword = await bcrypt.hash(password, 10);
-    const signupUser = new user({
+    const signupUser = new User({
       firstName,
       lastName,
       emailId,
@@ -146,19 +140,17 @@ app.post("/login", async (req, res) => {
     if (!validator.isEmail(emailId)) {
       throw new Error("invalid credential");
     }
-    const loginuser = await user.findOne({ emailId: emailId });
+    const loginuser = await User.findOne({ emailId: emailId });
     const { _id } = loginuser;
-    console.log(_id);
 
     if (!loginuser) {
       throw new Error("invalid credential");
     }
-    const isValidPassword = await bcrypt.compare(password, loginuser.password);
+    const isValidPassword = await loginuser.ispasswordVerified(password);
     if (!isValidPassword) {
       throw new Error("invalid credential");
     } else {
-      const token = jwt.sign({ _id }, "Happy@143");
-      res.cookie("token", token);
+      const token = await loginuser.getJWT();
       res.send("Login sucessfull");
     }
   } catch (err) {
