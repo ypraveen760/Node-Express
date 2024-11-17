@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const User = require("../DataBase/models/user");
 
-const auth = (req, res, next) => {
+const authdummy = (req, res, next) => {
   const token = "xyx";
   const isAuth = token === "xyx";
   if (!isAuth) {
@@ -29,4 +29,4 @@ const userAuth = async (req, res, next) => {
     res.status(500).send("Error occurred while verifying the token");
   }
 };
-module.exports = { auth, userAuth };
+module.exports = { authdummy, userAuth };

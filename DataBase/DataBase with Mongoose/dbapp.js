@@ -2,21 +2,28 @@ const express = require("express");
 const dbConnect = require("../config/database");
 const User = require("../models/user");
 const {
-  auth,
+  authdummy,
   userAuth,
 } = require("../../Middlewares&Route Handlers/authMiddleware");
 const { default: mongoose } = require("mongoose");
-const { signupValidator } = require("./utils/validation");
+
 const bcrypt = require("bcrypt");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const cookieparser = require("cookie-parser");
 const app = express();
 const port = 4000;
+const authRouter = require("../../Routers/auth");
+const profileRouter = require("../../Routers/profile");
+const requestRouter = require("../../Routers/request");
 
 app.use(express.json()); //now we will get req body into readable format used app.use to handle all http method and didnt give any  path just to handle all the path
-app.use("/admin", auth); //added middleware so that only authorised can get access
+app.use("/admin", authdummy); //added middleware so that only authorised can get access
 app.use(cookieparser());
+app.use("/", authRouter);
+app.use("/", profileRouter);
+app.use("/", requestRouter);
+
 //get user data
 app.get("/user", userAuth, async (req, res) => {
   try {
@@ -111,8 +118,10 @@ app.post("/user", async (req, res) => {
     res.status(501).send("Somthing went Wrong:" + err.message);
   }
 });
-//signup api
-app.post("/signup", async (req, res) => {
+
+/** this is now we are doing via router and we will do every api via routers
+ * //signup api 
+  app.post("/signup", async (req, res) => {
   try {
     //data validation
     signupValidator(req);
@@ -158,6 +167,7 @@ app.post("/login", async (req, res) => {
     res.status(statusCode).send("Error : " + err.message);
   }
 });
+*/
 
 dbConnect().then(() => {
   try {

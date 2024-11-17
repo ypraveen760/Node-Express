@@ -1,7 +1,6 @@
 const validator = require("validator");
 const signupValidator = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
-  console.log(password);
   if (!firstName || !lastName) {
     throw new Error("Please Enter Name");
   } else if (!validator.isEmail(emailId)) {
