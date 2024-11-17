@@ -13,13 +13,14 @@ const jwt = require("jsonwebtoken");
 const cookieparser = require("cookie-parser");
 const app = express();
 const port = 4000;
-const authRouter = require("../../Routers/auth");
-const profileRouter = require("../../Routers/profile");
-const requestRouter = require("../../Routers/request");
 
 app.use(express.json()); //now we will get req body into readable format used app.use to handle all http method and didnt give any  path just to handle all the path
 app.use("/admin", authdummy); //added middleware so that only authorised can get access
 app.use(cookieparser());
+const authRouter = require("../../Routers/auth");
+const profileRouter = require("../../Routers/profile");
+const requestRouter = require("../../Routers/request");
+
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);

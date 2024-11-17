@@ -11,4 +11,19 @@ const signupValidator = (req) => {
     );
   }
 };
-module.exports = { signupValidator };
+const validateEditRequest = (req) => {
+  const aproveToEdit = [
+    "firstName",
+    "lastName",
+    "age",
+    "gender",
+    "about",
+    "photo",
+    "skills",
+  ];
+  const isValidatedToEdit = Object.keys(req.body).every((key) =>
+    aproveToEdit.includes(key)
+  );
+  return isValidatedToEdit;
+};
+module.exports = { signupValidator, validateEditRequest };

@@ -17,7 +17,6 @@ const userAuth = async (req, res, next) => {
     }
     const decordMessage = await jwt.verify(token, "Happy@143");
     const { _id } = decordMessage;
-    console.log("userid =", _id);
     const user = await User.findById(_id);
 
     if (!user) {
