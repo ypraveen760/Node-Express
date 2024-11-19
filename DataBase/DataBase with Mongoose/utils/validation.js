@@ -26,4 +26,15 @@ const validateEditRequest = (req) => {
   );
   return isValidatedToEdit;
 };
-module.exports = { signupValidator, validateEditRequest };
+const validateChangePasswordRequest = (req) => {
+  const allowedToChange = ["currentPassword", "newPassword", "confirmPassword"];
+  const isallowedToChange = Object.keys(req.body).every((key) =>
+    allowedToChange.includes(key)
+  );
+  return isallowedToChange;
+};
+module.exports = {
+  signupValidator,
+  validateEditRequest,
+  validateChangePasswordRequest,
+};

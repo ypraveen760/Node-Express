@@ -1,16 +1,14 @@
 const express = require("express");
 const dbConnect = require("../config/database");
-const User = require("../models/user");
+
 const {
   authdummy,
   userAuth,
 } = require("../../Middlewares&Route Handlers/authMiddleware");
 const { default: mongoose } = require("mongoose");
-
-const bcrypt = require("bcrypt");
-const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const cookieparser = require("cookie-parser");
+const User = require("../models/user");
 const app = express();
 const port = 4000;
 
@@ -20,10 +18,12 @@ app.use(cookieparser());
 const authRouter = require("../../Routers/auth");
 const profileRouter = require("../../Routers/profile");
 const requestRouter = require("../../Routers/request");
+const userRouter = require("../../Routers/user");
 
 app.use("/", authRouter);
 app.use("/", profileRouter);
 app.use("/", requestRouter);
+app.use("/", userRouter);
 
 //get user data
 app.get("/user", userAuth, async (req, res) => {
@@ -35,21 +35,15 @@ app.get("/user", userAuth, async (req, res) => {
   }
 });
 //to update user data
-app.patch("/admin/updateuser/:userid", async (req, res) => {
-  const userid = req.params?.userid;
+app.patch("/profile/update", userAuth, async (req, res) => {
+  const userid = req.user._id;
   const Updatedata = req.body;
   if (!mongoose.Types.ObjectId.isValid(userid)) {
     return res.status(400).send("ID is not valid");
   }
   try {
-    const allowedUpdate = [
-      "age",
-      "gender",
-      "password",
-      "about",
-      "photo",
-      "skills",
-    ];
+    const allowedUpdate = ["age", "gender", "about", "photo", "skills"];
+    const filteredUpdates = {};
     const isAllowedUpdate = Object.keys(Updatedata).every((k) =>
       allowedUpdate.includes(k)
     );
@@ -57,10 +51,11 @@ app.patch("/admin/updateuser/:userid", async (req, res) => {
       throw new Error("update not allowed");
     }
     const data = await User.findByIdAndUpdate(userid, Updatedata, {
+      new: true,
       runValidators: true,
     });
 
-    res.send("Data updated sucessfully");
+    res.json({ message: "Data updated sucessfully" });
   } catch (err) {
     res.status(501).send("Somthing went wrong => " + err.message);
   }

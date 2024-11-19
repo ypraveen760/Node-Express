@@ -5,7 +5,10 @@ const user = require("../DataBase/models/user");
 const { userAuth } = require("../Middlewares&Route Handlers/authMiddleware");
 const {
   validateEditRequest,
+  validateChangePasswordRequest,
 } = require("../DataBase/DataBase with Mongoose/utils/validation");
+const validator = require("validator");
+const bcrypt = require("bcrypt");
 
 profileRouter.get("/profile/get", userAuth, async (req, res) => {
   try {
@@ -47,6 +50,34 @@ profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
   }
 });
 
-profileRouter.patch("/profile/changePassword", userAuth, (req, res) => {});
+profileRouter.patch("/profile/changePassword", userAuth, async (req, res) => {
+  try {
+    if (!validateChangePasswordRequest(req)) {
+      throw new Error("Not allowed to Edit");
+    }
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const loggedInUser = req.user;
+
+    if (!validator.isStrongPassword(confirmPassword)) {
+      throw new Error("Enter Strong Password");
+    }
+    const validPassword = await loggedInUser.ispasswordVerified(
+      currentPassword
+    );
+    if (!validPassword) {
+      throw new Error("Invalid current Password");
+    }
+    if (newPassword !== confirmPassword) {
+      throw new Error(" Both Password are not Same");
+    }
+    passwordHash = await bcrypt.hash(newPassword, 10);
+    loggedInUser.password = passwordHash;
+
+    await loggedInUser.save();
+    res.send("Password changed sucessfully");
+  } catch (err) {
+    res.status(400).send("Error Occured => " + err.message);
+  }
+});
 
 module.exports = profileRouter;
