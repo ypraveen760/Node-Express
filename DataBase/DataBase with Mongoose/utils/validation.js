@@ -1,6 +1,9 @@
 const validator = require("validator");
 const signupValidator = (req) => {
   const { firstName, lastName, emailId, password } = req.body;
+  if (firstName.length < 3 || lastName.length < 3) {
+    throw new Error("Please Enter Valid Name");
+  }
   if (!firstName || !lastName) {
     throw new Error("Please Enter Name");
   } else if (!validator.isEmail(emailId)) {
