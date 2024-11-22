@@ -68,11 +68,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default:
         "https://e7.pngegg.com/pngimages/348/800/png-clipart-man-wearing-blue-shirt-illustration-computer-icons-avatar-user-login-avatar-blue-child.png",
-      validate(value) {
-        if (!validator.isURL(value)) {
-          throw new Error("Please enter valid photo url");
-        }
-      },
     },
     skills: {
       type: [String],

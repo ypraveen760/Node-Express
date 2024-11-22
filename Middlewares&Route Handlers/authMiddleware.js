@@ -13,7 +13,7 @@ const userAuth = async (req, res, next) => {
   try {
     const { token } = req.cookies;
     if (!token) {
-      return res.status(401).send("token is missing");
+      return res.status(401).send("Please Login !");
     }
     const decordMessage = await jwt.verify(token, "Happy@143");
     const { _id } = decordMessage;

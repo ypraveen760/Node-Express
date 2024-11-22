@@ -33,7 +33,7 @@ profileRouter.get("/profile/get", userAuth, async (req, res) => {
   }
 });
 
-profileRouter.patch("/profile/edit", userAuth, async (req, res) => {
+profileRouter.put("/profile/update", userAuth, async (req, res) => {
   try {
     if (!validateEditRequest(req)) {
       throw new Error("Not allowed to edit");

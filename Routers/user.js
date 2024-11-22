@@ -4,7 +4,7 @@ const { userAuth } = require("../Middlewares&Route Handlers/authMiddleware");
 const connectionRequest = require("../DataBase/models/connectionRequest");
 const publicData = ["firstName", "lastName", "about", "photo", "skills"];
 const User = require("../DataBase/models/user");
-const publidData = ["firstName", "lastName", "photos", "skills"];
+const publidData = ["firstName", "lastName", "photos", "skills", "about"];
 //see all request
 userRouter.get("/user/request/recived", userAuth, async (req, res) => {
   try {
@@ -31,16 +31,17 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
           { fromUserId: loggedinUser._id, status: "accepted" },
         ],
       })
-      .populate("fromUserId", publicData);
-    const data = userConnections.map((row) => {
-      if (row.toUserId.toString() === loggedinUser._id.toString()) {
-        return row.fromUserId;
-      } else {
+      .populate("fromUserId", publicData)
+      .populate("toUserId", publicData);
+    const userData = userConnections.map((row) => {
+      if (row.fromUserId._id.toString() === loggedinUser._id.toString()) {
         return row.toUserId;
+      } else {
+        return row.fromUserId;
       }
     });
 
-    res.json({ message: "All Connections", data });
+    res.json({ message: `All Connections fetch successfully`, userData });
   } catch (err) {
     res.status(401).send("Error Occured" + err.message);
   }

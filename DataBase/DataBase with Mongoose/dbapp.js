@@ -1,5 +1,6 @@
 const express = require("express");
 const dbConnect = require("../config/database");
+const cors = require("cors");
 
 const {
   authdummy,
@@ -12,6 +13,13 @@ const User = require("../models/user");
 const app = express();
 const port = 4000;
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json()); //now we will get req body into readable format used app.use to handle all http method and didnt give any  path just to handle all the path
 app.use("/admin", authdummy); //added middleware so that only authorised can get access
 app.use(cookieparser());

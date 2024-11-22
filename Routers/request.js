@@ -59,9 +59,10 @@ requestRouter.post(
         status,
       });
 
-      await dataToSaved.save();
+      const data = await dataToSaved.save();
       res.json({
         Message: `${status} ${userData.firstName} successfully `,
+        data,
       });
     } catch (err) {
       res.status(400).send("Error occured => " + err.message);
